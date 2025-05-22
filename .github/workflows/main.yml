@@ -1,0 +1,49 @@
+name: Aula CI Teste de Sistemas
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testedb
+          MYSQL_USER: testeuser
+          MYSQL_PASSWORD: testepass
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v3
+
+    - name: Setup JAVA
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Aguardar o MYSQL rodar
+      run: sleep 20
+
+    - name: Rodar testes
+      env:  
+        DB_HOST: 127.0.0.1
+        DB_PORT: 3306
+        DB_NAME: testedb
+        DB_USER: testuser
+        DB_PASS: testpass
+      run: mvn test
